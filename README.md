@@ -1,2 +1,2 @@
-# usnake
-Game of snake written in C++ with GTK4.
+# μSnake
+Lightweight game of Snake written in C++ and GTK4.
