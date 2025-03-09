@@ -149,7 +149,7 @@ namespace usnake {
         GtkWidget *option_button = gtk_menu_button_new();
         gtk_menu_button_set_popover(GTK_MENU_BUTTON(option_button), popover);
         gtk_menu_button_set_icon_name(GTK_MENU_BUTTON(option_button), "dialog-information-symbolic");
-        gtk_header_bar_pack_end(GTK_HEADER_BAR(header_bar), option_button);
+     //   gtk_header_bar_pack_end(GTK_HEADER_BAR(header_bar), option_button);  // UNFINISHED
     
         status_label = GTK_LABEL(gtk_label_new("Score: 0"));
     
