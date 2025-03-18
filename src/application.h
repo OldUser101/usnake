@@ -21,8 +21,8 @@ namespace usnake {
 
         // WINDOW CREATION //
         static GtkWidget* get_main_content();
-        static GtkWidget* get_header_bar();
-        static GtkWidget* get_popover();
+        static GtkWidget* get_header_bar(GtkApplication *app, GtkWindow *window);
+        static GtkWidget* get_popover(GtkApplication *app, GtkWindow *window);
 
         // CALLBACKS //
         static void option_button_callback(GtkButton *button, gpointer user_data);
@@ -31,6 +31,7 @@ namespace usnake {
         static void draw_callback(GtkDrawingArea *area, cairo_t *cr, int width, int height, gpointer user_data);
         static gboolean timer_callback(gpointer user_data);
         static void pause_button_callback(GtkWidget *widget, gpointer data);
+        static void about_menu_callback(GtkWidget *widget, gpointer user_data);
 
         // GAME CONTROL //
         static void handle_play_pause(gpointer user_data);

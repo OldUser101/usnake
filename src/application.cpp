@@ -25,9 +25,13 @@ namespace usnake {
         if (g_strcmp0(current_icon, "media-playback-start") == 0) {
             gtk_image_set_from_icon_name(GTK_IMAGE(image), "media-playback-pause");
             snake.resume_game();
+            std::string msg = "Score: ";
+            msg += std::to_string(snake.score());
+            update_status(msg.c_str()); 
         } else {
             gtk_image_set_from_icon_name(GTK_IMAGE(image), "media-playback-start");
             snake.pause_game();
+            update_status("Paused");
         }
     }
 
@@ -78,7 +82,7 @@ namespace usnake {
         return G_SOURCE_CONTINUE;
     }
 
-    gboolean Application::key_callback(GtkEventControllerKey *controller, guint keyval, guint keycode, GdkModifierType state, gpointer user_data) {
+    gboolean Application::key_callback(GtkEventControllerKey *controller, guint keyval, guint keycode, GdkModifierType state, gpointer user_data) {        
         switch (keyval) {
             case GDK_KEY_Up:
                 snake.set_direction(UP);
@@ -110,26 +114,45 @@ namespace usnake {
         gtk_popover_popup(popover);
     }
 
+    void Application::about_menu_callback(GtkWidget *widget, gpointer user_data) {
+        GFile *logo_file = g_file_new_for_path("./usnake.png");
+        GdkTexture *usnake_logo = gdk_texture_new_from_file(logo_file, NULL);
+        g_object_unref (logo_file);
+
+        GtkAboutDialog *about = GTK_ABOUT_DIALOG(gtk_about_dialog_new());
+        gtk_about_dialog_set_program_name(about, "μSnake");
+        gtk_about_dialog_set_copyright(about, "Copyright © 2025, Nathan Gill");
+        gtk_about_dialog_set_license_type(about, GTK_LICENSE_MPL_2_0);
+        gtk_about_dialog_set_website(about, "https://github.com/OldUser101/usnake");
+        gtk_about_dialog_set_website_label(about, "View on GitHub");
+        gtk_about_dialog_set_logo(about, GDK_PAINTABLE(usnake_logo));
+        gtk_widget_set_visible(GTK_WIDGET(about), TRUE);
+    }
+
 
 
     /*******************/
     /* WINDOW CREATION */
     /*******************/
-    GtkWidget* Application::get_popover() {
-        GtkWidget *popover = gtk_popover_new();
+    GtkWidget* Application::get_popover(GtkApplication *app, GtkWindow *window) {
+        GMenuModel *menu;
+        GtkBuilder *builder = gtk_builder_new_from_file("menu.ui");
+        menu = G_MENU_MODEL(gtk_builder_get_object(builder, "settings-menu"));
+
+        GtkWidget *popover = gtk_popover_menu_new_from_model(menu);
+        g_object_unref(builder);
+
+        GSimpleAction *action_about = g_simple_action_new("about", NULL);
     
-        GtkWidget *box = gtk_box_new(GTK_ORIENTATION_VERTICAL, 0);
-        GtkWidget *setting = gtk_button_new_with_label("Setting 1");
-        gtk_box_append(GTK_BOX(box), setting);
-    
-        gtk_popover_set_child(GTK_POPOVER(popover), box);
-    
+        g_action_map_add_action(G_ACTION_MAP(app), G_ACTION(action_about));
+        g_signal_connect(action_about, "activate", G_CALLBACK(about_menu_callback), window);
+
         gtk_popover_set_position(GTK_POPOVER(popover), GTK_POS_BOTTOM);
     
         return popover;
     }
     
-    GtkWidget* Application::get_header_bar() {
+    GtkWidget* Application::get_header_bar(GtkApplication *app, GtkWindow *window) {
         GtkWidget *header_bar = gtk_header_bar_new();
     
         GtkWidget *new_button = gtk_button_new();
@@ -144,14 +167,15 @@ namespace usnake {
         g_signal_connect(pause_button, "clicked", G_CALLBACK(pause_button_callback), state_icon);
         gtk_header_bar_pack_start(GTK_HEADER_BAR(header_bar), pause_button);
     
-        GtkWidget *popover = get_popover();
+        GtkWidget *popover = get_popover(app, window);
     
         GtkWidget *option_button = gtk_menu_button_new();
         gtk_menu_button_set_popover(GTK_MENU_BUTTON(option_button), popover);
         gtk_menu_button_set_icon_name(GTK_MENU_BUTTON(option_button), "dialog-information-symbolic");
-     //   gtk_header_bar_pack_end(GTK_HEADER_BAR(header_bar), option_button);  // UNFINISHED
+        gtk_header_bar_pack_end(GTK_HEADER_BAR(header_bar), option_button);
     
         status_label = GTK_LABEL(gtk_label_new("Score: 0"));
+        gtk_widget_add_css_class(GTK_WIDGET(status_label), "title");
     
         GtkWidget *header_box = gtk_box_new(GTK_ORIENTATION_HORIZONTAL, 0);
         gtk_box_set_homogeneous(GTK_BOX(header_box), TRUE);
@@ -187,14 +211,14 @@ namespace usnake {
     /*********************/
     void Application::activate(GtkApplication *app, gpointer user_data) {
         GtkWidget *window = gtk_application_window_new(app);
-        gtk_window_set_title(GTK_WINDOW(window), "");
+        gtk_window_set_title(GTK_WINDOW(window), "μSnake");
         gtk_window_set_default_size(GTK_WINDOW(window), 450, 450);
     
-         GtkEventController *key_controller = gtk_event_controller_key_new();
-         g_signal_connect(key_controller, "key-pressed", G_CALLBACK(key_callback), NULL);
-         gtk_widget_add_controller(window, key_controller);
+        GtkEventController *key_controller = gtk_event_controller_key_new();
+        g_signal_connect(key_controller, "key-pressed", G_CALLBACK(key_callback), NULL);
+        gtk_widget_add_controller(window, key_controller);
     
-        GtkWidget *header_bar = get_header_bar();
+        GtkWidget *header_bar = get_header_bar(app, GTK_WINDOW(window));
         GtkWidget *content = get_main_content();
     
         gtk_window_set_titlebar(GTK_WINDOW(window), header_bar);
@@ -209,7 +233,7 @@ namespace usnake {
 
     int Application::start(int argc, char* argv[]) {
         GtkApplication *app = gtk_application_new("org.nathanjgill.uSnake", G_APPLICATION_DEFAULT_FLAGS);
-    
+
         g_signal_connect(app, "activate", G_CALLBACK(activate), NULL);
     
         int status = g_application_run(G_APPLICATION(app), argc, argv);

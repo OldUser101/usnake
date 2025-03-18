@@ -10,6 +10,7 @@
 #define RIGHT 1
 #define DOWN 2
 #define LEFT 3
+#define NONE 4
 
 #define WIDTH 15
 #define HEIGHT 15
@@ -30,6 +31,7 @@ namespace usnake {
     private:
         std::vector<SNAKE_CELL> snake_cells;  
         ATTRIBUTED_POINT ap = { 0, 0 };
+
         //int pendingDirection = 0;
         bool directionPending = false;
 

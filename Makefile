@@ -9,16 +9,25 @@ CXX := g++
 CXXFLAGS := $(shell pkg-config --cflags gtk4) -g
 LDFLAGS := $(shell pkg-config --libs gtk4)
 
-all: $(BIN_USNAKE)
+all: $(BIN_USNAKE) copy-ui copy-png
 
 $(BIN_DIR):
 	mkdir -p $(BIN_DIR)
+
+$(UI_FILES): $(BIN_DIR)
+	cp $(UI_FILES)
 
 $(BIN_USNAKE): $(OBJ_FILES) | $(BIN_DIR)
 	$(CXX) -o $@ $^ $(LDFLAGS)
 
 $(BIN_DIR)/%.o: $(SRC_DIR)/%.cpp | $(BIN_DIR)
 	$(CXX) $(CXXFLAGS) -c $< -o $@
+
+copy-ui:
+	cp $(SRC_DIR)/*.ui $(BIN_DIR)
+
+copy-png:
+	cp $(SRC_DIR)/*.png $(BIN_DIR)
 
 clean:
 	rm -rf $(BIN_DIR)

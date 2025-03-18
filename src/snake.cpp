@@ -3,10 +3,10 @@
 namespace usnake {
     void Snake::init_cells() {
         SNAKE_CELL c = {};
-        c.x = 1;
-        c.y = 1;
+        c.x = 7;
+        c.y = 7;
 
-        direction = RIGHT;
+        direction = NONE;
 
         snake_cells.clear();
         snake_cells.push_back(c);
@@ -100,6 +100,8 @@ namespace usnake {
                     case LEFT:
                         newX--;
                         break;
+                    case NONE:
+                        goto NoMove;
                 }
 
                 newX = newX < 0 ? (WIDTH + newX) : newX;
@@ -113,6 +115,7 @@ namespace usnake {
                     _gameover = true;
                 }
 
+NoMove:
                 SNAKE_CELL n = {};
                 n.x = newX;
                 n.y = newY;
@@ -144,9 +147,13 @@ namespace usnake {
     }
 
     void Snake::set_direction(int dir) {
+        if (_isPaused || _gameover) {
+            return;
+        }
+
         int axis = (direction == UP || direction == DOWN) ? 0 : 1;
 
-        if ((axis == 1 && (dir == UP || dir == DOWN)) || (axis == 0 && (dir == RIGHT || dir == LEFT)))
+        if ((axis == 1 && (dir == UP || dir == DOWN)) || (axis == 0 && (dir == RIGHT || dir == LEFT)) || direction == NONE)
         {
             pendingDirection = dir;
             directionPending = true;
